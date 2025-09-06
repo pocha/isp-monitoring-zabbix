@@ -1,0 +1,44 @@
+name: ISP Gateway Ping Monitor
+
+on:
+  schedule:
+    # Runs every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping-monitor:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zabbix-sender iputils-ping
+        
+    - name: Install Python dependencies
+      run: |
+        pip install pyyaml requests
+        
+    - name: Run ping monitor
+      env:
+        ZABBIX_SERVER: ${{ secrets.ZABBIX_SERVER }}
+        ZABBIX_PORT: ${{ secrets.ZABBIX_PORT }}
+      run: |
+        python ping_monitor.py
+        
+    - name: Upload logs as artifact
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: ping-monitor-logs
+        path: ping_monitor.log
+        retention-days: 7

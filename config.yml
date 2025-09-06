@@ -1,0 +1,42 @@
+# ISP Gateway Ping Monitor Configuration
+# Add your ISP gateway locations and corresponding Zabbix hostnames
+
+locations:
+  # Location 1 - Main Office
+  main_office:
+    gateway_ip: "192.168.1.1"
+    zabbix_hostname: "ISP-Gateway-Main"
+    description: "Main office ISP gateway"
+    isp_name: "Comcast Business"
+    
+  # Location 2 - Branch Office
+  branch_office:
+    gateway_ip: "192.168.2.1"
+    zabbix_hostname: "ISP-Gateway-Branch"
+    description: "Branch office ISP gateway"
+    isp_name: "Verizon Business"
+    
+  # Location 3 - Data Center
+  datacenter:
+    gateway_ip: "10.0.1.1"
+    zabbix_hostname: "ISP-Gateway-DC"
+    description: "Data center ISP gateway"
+    isp_name: "AT&T Business"
+    
+  # Location 4 - Remote Site
+  remote_site:
+    gateway_ip: "172.16.1.1"
+    zabbix_hostname: "ISP-Gateway-Remote"
+    description: "Remote site ISP gateway"
+    isp_name: "CenturyLink"
+
+# Configuration notes:
+# - gateway_ip: The IP address of your ISP's gateway/router
+# - zabbix_hostname: Must match the hostname configured in Zabbix server
+# - description: Human readable description (optional, for documentation)
+# - isp_name: ISP provider name (optional, for documentation)
+
+# To find your gateway IP, you can use:
+# - Windows: ipconfig /all (look for Default Gateway)
+# - Linux/Mac: ip route | grep default
+# - Router admin panel: usually shows WAN gateway
