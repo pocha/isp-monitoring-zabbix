@@ -1,42 +1,80 @@
-# ISP Gateway Ping Monitor Configuration
-# Add your ISP gateway locations and corresponding Zabbix hostnames
+# ISP Gateway Ping Monitor Configuration - Multi-ISP Support
+# Each location can have multiple ISP connections for redundancy monitoring
 
 locations:
-  # Location 1 - Main Office
+  # Location 1 - Main Office (Dual ISP setup)
   main_office:
-    gateway_ip: "192.168.1.1"
-    zabbix_hostname: "ISP-Gateway-Main"
-    description: "Main office ISP gateway"
-    isp_name: "Comcast Business"
-    
-  # Location 2 - Branch Office
+    description: "Main office with primary and backup ISP"
+    isps:
+      primary:
+        gateway_ip: "192.168.1.1"
+        zabbix_hostname: "ISP-Main-Primary"
+        isp_name: "Comcast Business"
+        connection_type: "Primary"
+        
+      backup:
+        gateway_ip: "192.168.1.254"
+        zabbix_hostname: "ISP-Main-Backup"
+        isp_name: "Verizon Business"
+        connection_type: "Backup"
+        
+  # Location 2 - Branch Office (Triple ISP setup)
   branch_office:
-    gateway_ip: "192.168.2.1"
-    zabbix_hostname: "ISP-Gateway-Branch"
-    description: "Branch office ISP gateway"
-    isp_name: "Verizon Business"
-    
-  # Location 3 - Data Center
+    description: "Branch office with primary, backup, and cellular ISP"
+    isps:
+      primary:
+        gateway_ip: "192.168.2.1"
+        zabbix_hostname: "ISP-Branch-Primary"
+        isp_name: "AT&T Business"
+        connection_type: "Primary"
+        
+      backup:
+        gateway_ip: "192.168.2.254"
+        zabbix_hostname: "ISP-Branch-Backup"
+        isp_name: "CenturyLink"
+        connection_type: "Backup"
+        
+      cellular:
+        gateway_ip: "10.0.100.1"
+        zabbix_hostname: "ISP-Branch-Cellular"
+        isp_name: "Verizon Wireless"
+        connection_type: "Cellular Backup"
+        
+  # Location 3 - Data Center (Dual ISP setup)
   datacenter:
-    gateway_ip: "10.0.1.1"
-    zabbix_hostname: "ISP-Gateway-DC"
-    description: "Data center ISP gateway"
-    isp_name: "AT&T Business"
-    
-  # Location 4 - Remote Site
+    description: "Data center with redundant fiber connections"
+    isps:
+      fiber_a:
+        gateway_ip: "10.0.1.1"
+        zabbix_hostname: "ISP-DC-FiberA"
+        isp_name: "Level3/Lumen"
+        connection_type: "Fiber A"
+        
+      fiber_b:
+        gateway_ip: "10.0.2.1"
+        zabbix_hostname: "ISP-DC-FiberB"
+        isp_name: "Cogent"
+        connection_type: "Fiber B"
+        
+  # Location 4 - Remote Site (Single ISP)
   remote_site:
-    gateway_ip: "172.16.1.1"
-    zabbix_hostname: "ISP-Gateway-Remote"
-    description: "Remote site ISP gateway"
-    isp_name: "CenturyLink"
+    description: "Remote site with single ISP connection"
+    isps:
+      primary:
+        gateway_ip: "172.16.1.1"
+        zabbix_hostname: "ISP-Remote-Primary"
+        isp_name: "Local Cable Provider"
+        connection_type: "Primary"
 
 # Configuration notes:
-# - gateway_ip: The IP address of your ISP's gateway/router
-# - zabbix_hostname: Must match the hostname configured in Zabbix server
-# - description: Human readable description (optional, for documentation)
-# - isp_name: ISP provider name (optional, for documentation)
+# - Each location can have multiple ISPs under the 'isps' section
+# - ISP identifiers (primary, backup, cellular, etc.) are flexible - use descriptive names
+# - gateway_ip: The IP address of the ISP's gateway/router
+# - zabbix_hostname: Must match the hostname configured in Zabbix server (unique per ISP)
+# - isp_name: Human readable ISP provider name
+# - connection_type: Description of the connection role (Primary, Backup, etc.)
 
-# To find your gateway IP, you can use:
+# To find gateway IPs:
 # - Windows: ipconfig /all (look for Default Gateway)
-# - Linux/Mac: ip route | grep default
-# - Router admin panel: usually shows WAN gateway
+# - Linux/Mac: ip route show | grep default
+# - Router admin: usually shows WAN gateway for each connection
