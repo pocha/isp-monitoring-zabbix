@@ -159,10 +159,11 @@ def main():
             
             # Send metrics to Zabbix
             metrics = [
-                ('ping.loss', ping_result['packet_loss']),
-                ('ping.avg', ping_result['avg_time']),
-                ('ping.min', ping_result['min_time']),
-                ('ping.max', ping_result['max_time'])
+                ('ping_check', 1 if ping_result['result'] == True else 0),
+                ('packet_loss', ping_result['packet_loss']),
+                ('avg_time', ping_result['avg_time'])
+                #('ping.min', ping_result['min_time']),
+                #('ping.max', ping_result['max_time'])
             ]
             
             for key, value in metrics:
