@@ -36,5 +36,6 @@ jobs:
         ZABBIX_SERVER: ${{ secrets.ZABBIX_SERVER }}
         ZABBIX_PORT: ${{ secrets.ZABBIX_PORT }}
       run: |
+        echo $ZABBIX_SERVER
         python ping_monitor.py
 
