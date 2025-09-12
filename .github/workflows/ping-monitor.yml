@@ -38,11 +38,3 @@ jobs:
         ZABBIX_PORT: ${{ secrets.ZABBIX_PORT }}
       run: |
         python ping_monitor.py
-        
-    - name: Upload logs as artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: ping-monitor-logs
-        path: ping_monitor.log
-        retention-days: 7
