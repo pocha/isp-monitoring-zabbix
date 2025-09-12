@@ -2,7 +2,6 @@ name: ISP Gateway Ping Monitor
 
 on:
   schedule:
-    # Runs every 5 minutes
     - cron: '*/5 * * * *'
   workflow_dispatch: # Allow manual trigger
 
@@ -37,4 +36,5 @@ jobs:
         ZABBIX_SERVER: ${{ secrets.ZABBIX_SERVER }}
         ZABBIX_PORT: ${{ secrets.ZABBIX_PORT }}
       run: |
-      python ping_monitor.py
+        python ping_monitor.py
+
