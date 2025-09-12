@@ -145,21 +145,19 @@ def main():
             total_isps += 1
             gateway_ip = isp_data.get('gateway_ip')
             zabbix_hostname = isp_data.get('zabbix_hostname')
-            isp_name = isp_data.get('isp_name', 'Unknown ISP')
-            connection_type = isp_data.get('connection_type', 'Unknown')
             
             if not gateway_ip or not zabbix_hostname:
                 logger.error(f"Missing gateway_ip or zabbix_hostname for {location_name}/{isp_id}")
                 continue
             
-            logger.info(f"  Monitoring ISP: {isp_name} ({connection_type}) - {gateway_ip}")
+            logger.info(f"  Monitoring: {zabbix_hostname} - {gateway_ip}")
             
             # Ping the gateway
             ping_result = ping_gateway(gateway_ip)
             
             # Send metrics to Zabbix
             metrics = [
-                ('ping_check', 1 if ping_result['result'] == True else 0),
+                ('ping_check', 1 if ping_result['success'] == True else 0),
                 ('packet_loss', ping_result['packet_loss']),
                 ('avg_time', ping_result['avg_time'])
                 #('ping.min', ping_result['min_time']),
