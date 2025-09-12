@@ -30,7 +30,7 @@ def load_config(config_file='config.yml'):
 def ping_gateway(ip_address, count=5):
     """Ping gateway and return statistics"""
     try:
-        cmd = ['ping', '-c', str(count), '-W', '3', ip_address]
+        cmd = ['tcping', '-c', str(count), ip_address, "80"]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         
         if result.returncode == 0:
