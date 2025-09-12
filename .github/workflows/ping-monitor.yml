@@ -21,10 +21,6 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        # Add Zabbix repository
-        wget https://repo.zabbix.com/zabbix/7.2/release/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest+ubuntu24.04_all.deb 
-        sudo dpkg -i zabbix-release_latest+ubuntu24.04_all.deb
-        sudo apt-get update
         sudo apt-get install -y zabbix-sender iputils-ping
         
     - name: Install Python dependencies
