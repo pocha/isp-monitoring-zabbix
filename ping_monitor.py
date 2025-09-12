@@ -30,7 +30,7 @@ def load_config(config_file='config.yml'):
 def ping_gateway(ip_address, count=5):
     """Ping gateway and return statistics"""
     try:
-        cmd = ['tcping', '-c', str(count), ip_address, "80"]
+        cmd = ['tcping', '-c', str(count),"--no-color", ip_address, "80"]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         
         if result.returncode == 0:
@@ -39,20 +39,25 @@ def ping_gateway(ip_address, count=5):
             stats_line = None
             
             for line in lines:
+                print(line)
                 if 'packet loss' in line:
                     # Extract packet loss percentage
                     loss_percent = line.split('%')[0].split()[-1]
-                    packet_loss = float(loss_percent)
-                elif 'min/avg/max' in line or 'rtt min/avg/max' in line:
+                    packet_loss = float(loss_percent.replace("received",""))
+                    print(packet_loss)
+                elif 'min/avg/max' in line or 'rtt ' in line:
                     # Extract round trip times
                     stats_line = line
+                    print("here")
+                    break
             
             if stats_line:
                 # Parse: rtt min/avg/max/mdev = 1.234/5.678/9.012/1.234 ms
-                times = stats_line.split('=')[1].strip().split('/')[0:3]
+                times = stats_line.split(':')[1].strip().split('/')[0:3]
+                print(times)
                 min_time = float(times[0])
                 avg_time = float(times[1])
-                max_time = float(times[2])
+                max_time = float(times[2].split(" ")[0])
                 
                 return {
                     'success': True,

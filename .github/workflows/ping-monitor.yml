@@ -20,7 +20,7 @@ jobs:
         
     - name: Install system dependencies
       run: |
-        sudo dpkg -i tcping-amd64.deb
+        sudo dpkg -i tcping.deb
         
     - name: Install Python dependencies
       run: |
