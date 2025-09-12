@@ -92,13 +92,11 @@ def ping_gateway(ip_address, count=5):
 def send_to_zabbix(zabbix_server, zabbix_port, hostname, key, value):
     """Send data to Zabbix using zabbix_sender"""
     try:
+        url = zabbix_server + "?server=" + hostname + "&key=" + str(key) + "&value=" + str(value)
         cmd = [
-            'zabbix_sender',
-            '-z', zabbix_server,
-            '-p', str(zabbix_port),
-            '-s', hostname,
-            '-k', key,
-            '-o', str(value)
+            'wget',
+            '-O', "-",
+            url
         ]
         
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
