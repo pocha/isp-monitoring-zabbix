@@ -39,14 +39,14 @@ Command -> sudo tailscale funnel --bg 8081
 [sudo] password for isha: 
 Available on the internet:
 
-https://ifiycitsklt395.tail386825.ts.net/
+https://xxxxx.tail386825.ts.net/
 |-- proxy http://127.0.0.1:8081
 
 Funnel started and running in the background.
 To disable the proxy, run: tailscale funnel --https=443 off
 ```
 
-Note the url **https://ifiycitsklt395.tail386825.ts.net/** which is required in the next step. 
+Note the url **https://xxxx.tail386825.ts.net/** which is required in the next step. 
 
 ### Setup Repository Secrets
 Add these secrets to your GitHub repository (Settings > Secrets and variables > Actions):
