@@ -2,7 +2,7 @@ name: ISP Gateway Ping Monitor
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
