@@ -6,6 +6,8 @@ import json
 import logging
 import sys
 from datetime import datetime
+import time
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
@@ -18,7 +20,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def load_config(config_file='config.yml'):
+def load_config(config_file=Path(__file__).parent / 'config.yml'):
     """Load configuration from YAML file"""
     try:
         with open(config_file, 'r') as f:
@@ -126,59 +128,65 @@ def main():
         logger.error("No 'locations' found in config file")
         sys.exit(1)
     
-    total_success = 0
-    total_failed = 0
-    total_isps = 0
     
-    # Process each location
-    for location_name, location_data in config['locations'].items():
-        logger.info(f"Processing location: {location_name}")
+    
+    while True:
         
-        if 'isps' not in location_data:
-            logger.error(f"No 'isps' found for location {location_name}")
-            continue
-        
-        # Process each ISP at this location
-        for isp_id, isp_data in location_data['isps'].items():
-            total_isps += 1
-            gateway_ip = isp_data.get('gateway_ip')
-            zabbix_hostname = isp_data.get('zabbix_hostname')
+        total_success = 0
+        total_failed = 0
+        total_isps = 0
+
+        # Process each location
+        for location_name, location_data in config['locations'].items():
+            logger.info(f"Processing location: {location_name}")
             
-            if not gateway_ip or not zabbix_hostname:
-                logger.error(f"Missing gateway_ip or zabbix_hostname for {location_name}/{isp_id}")
+            if 'isps' not in location_data:
+                logger.error(f"No 'isps' found for location {location_name}")
                 continue
             
-            logger.info(f"  Monitoring: {zabbix_hostname} - {gateway_ip}")
-            
-            # Ping the gateway
-            ping_result = ping_gateway(gateway_ip)
-            
-            # Send metrics to Zabbix
-            metrics = [
-                ('ping_check', 1 if ping_result['success'] == True else 0),
-                ('packet_loss', ping_result['packet_loss']),
-                ('avg_time', ping_result['avg_time'])
-                #('ping.min', ping_result['min_time']),
-                #('ping.max', ping_result['max_time'])
-            ]
-            
-            for key, value in metrics:
-                success = send_to_zabbix(zabbix_server, zabbix_port, zabbix_hostname, key, value)
-                if success:
-                    total_success += 1
-                else:
-                    total_failed += 1
-            
-            # Log results for this ISP
-            status = "OK" if ping_result['packet_loss'] < 100 else "FAILED"
-            logger.info(f"    {status} - Loss: {ping_result['packet_loss']}%, Avg RTT: {ping_result['avg_time']}ms")
-    
-    logger.info(f"Monitoring complete - Locations: {len(config['locations'])}, ISPs: {total_isps}")
-    logger.info(f"Zabbix metrics - Success: {total_success}, Failed: {total_failed}")
-    
-    if total_failed > 0:
-        logger.warning(f"Some metrics failed to send to Zabbix ({total_failed} failures)")
-        sys.exit(1)
+            # Process each ISP at this location
+            for isp_id, isp_data in location_data['isps'].items():
+                total_isps += 1
+                gateway_ip = isp_data.get('gateway_ip')
+                zabbix_hostname = isp_data.get('zabbix_hostname')
+                
+                if not gateway_ip or not zabbix_hostname:
+                    logger.error(f"Missing gateway_ip or zabbix_hostname for {location_name}/{isp_id}")
+                    continue
+                
+                logger.info(f"  Monitoring: {zabbix_hostname} - {gateway_ip}")
+                
+                # Ping the gateway
+                ping_result = ping_gateway(gateway_ip)
+                
+                # Send metrics to Zabbix
+                metrics = [
+                    ('ping_check', 1 if ping_result['success'] == True else 0),
+                    ('packet_loss', ping_result['packet_loss']),
+                    ('avg_time', ping_result['avg_time'])
+                    #('ping.min', ping_result['min_time']),
+                    #('ping.max', ping_result['max_time'])
+                ]
+                
+                for key, value in metrics:
+                    success = send_to_zabbix(zabbix_server, zabbix_port, zabbix_hostname, key, value)
+                    if success:
+                        total_success += 1
+                    else:
+                        total_failed += 1
+                
+                # Log results for this ISP
+                status = "OK" if ping_result['packet_loss'] < 100 else "FAILED"
+                logger.info(f"    {status} - Loss: {ping_result['packet_loss']}%, Avg RTT: {ping_result['avg_time']}ms")
+        
+        logger.info(f"Monitoring complete - Locations: {len(config['locations'])}, ISPs: {total_isps}")
+        logger.info(f"Zabbix metrics - Success: {total_success}, Failed: {total_failed}")
+
+        time.sleep(5)
+        
+        # if total_failed > 0:
+        #     logger.warning(f"Some metrics failed to send to Zabbix ({total_failed} failures)")
+        #     sys.exit(1)
 
 if __name__ == "__main__":
     main()

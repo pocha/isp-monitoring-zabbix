@@ -1,0 +1,17 @@
+[Unit]
+Description = Ping Monitor
+After = network.target  
+
+[Service]
+Type = simple
+Environment=ZABBIX_SERVER=https://ifiycitsklt395.tail386825.ts.net/
+ExecStart=/usr/bin/python3 /home/isha/isp-monitoring-zabbix/ping_monitor.py 
+User = root
+Group = root 
+Restart = on-failure 
+SyslogIdentifier = ping_monitor
+RestartSec = 5
+TimeoutStartSec = infinity
+ 
+[Install]
+WantedBy = multi-user.target 
