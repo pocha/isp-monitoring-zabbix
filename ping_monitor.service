@@ -4,8 +4,8 @@ After = network.target
 
 [Service]
 Type = simple
-Environment=ZABBIX_SERVER=https://ifiycitsklt395.tail386825.ts.net/
-ExecStart=/usr/bin/python3 /home/isha/isp-monitoring-zabbix/ping_monitor.py 
+Environment=ZABBIX_SERVER=xxxx #replace xxx with tailscale domain
+ExecStart=/usr/bin/python3 /root/ping_monitor.py #update path to where the repository is checked out 
 User = root
 Group = root 
 Restart = on-failure 

@@ -1,191 +1,124 @@
-# ISP Gateway Ping Monitor - Multi-ISP Support
+# Linkeye alternative for monitoring ISPs with Zabbix
 
-This GitHub Actions workflow monitors multiple ISP gateway connections per location by pinging gateway IPs every 5 minutes and sending metrics to Zabbix. Perfect for monitoring redundant ISP setups with primary, backup, and cellular connections.
+[Linkeye](linkeye.ai) does monitoring of ISPs by pinging them externally from their server & provide you with alerts & dashboard. At Isha Yoga Center, we have created an inhouse solution of the same using our self hosted [Zabbix](zabbix.com). This repository is for python script that is run externally (on an AWS server) to ping our ISPs on regular basis 
 
-## Features
 
-- **Multi-ISP per Location**: Monitor primary, backup, cellular, and multiple fiber connections
-- **Automated Monitoring**: Runs every 5 minutes via GitHub Actions
-- **Zabbix Integration**: Sends metrics using zabbix_sender
-- **Comprehensive Logging**: Detailed logs with execution artifacts
-- **Flexible Configuration**: YAML-based configuration for easy management
 
 ## Setup Instructions
 
-### 1. Repository Secrets
-Add these secrets to your GitHub repository (Settings > Secrets and variables > Actions):
+### Setup Zabbix 
 
-- `ZABBIX_SERVER`: Your Zabbix server hostname/IP (e.g., `example.com`)
-- `ZABBIX_PORT`: Zabbix trapper port (default: `10051`)
+Download & install Zabbix on one of your internal machines. Zabbix has SNMP trap support to capture data from switches & other internal devices. You can also choose to install Zabbix agents on switches & other network devices if there is support for that. 
 
-### 2. Configuration
+> To post data from outside to Zabbix, the usual way of `zabbix_sender` will not work out. You need to setup a jump server (using ngrok or something similar) to have an external endpoint to which the external script can post data, which will route to zabbix-http & zabbix-http will push the data to zabbix using zabbix_sender
+
+### Setup `zabbix-sender-http` on machine running zabbix
+
+Download & install [zabbix-sender-http](https://github.com/0xdeface/zabbix-sender-http). Links to install are on the README of the project. It has to be installed on the same machine where Zabbix is running. 
+
+Start zabbix-sender-http on port 8081 (Zabbix is running on port 8080)
+
+```
+Command -> ./zabbix-http -http-port 8081
+
+ zabbix server addr: 127.0.0.1:10051 
+ http server port: 8081 
+
+```
+
+### Setup `tailscale` tunnel/funnel on machine running Zabbix
+
+Install
+
+```
+curl -fsSL https://tailscale.com/install.sh | sh   
+```
+
+Create Tunnel to port 8081 on which zabbix-sender-http is listening 
+
+```
+Command -> sudo tailscale funnel --bg 8081
+
+[sudo] password for isha: 
+Available on the internet:
+
+https://ifiycitsklt395.tail386825.ts.net/
+|-- proxy http://127.0.0.1:8081
+
+Funnel started and running in the background.
+To disable the proxy, run: tailscale funnel --https=443 off
+```
+
+Note the url **https://ifiycitsklt395.tail386825.ts.net/** which you should be passing as Env variable `ZABBIX_SERVER`
+
+
+### Setup config file with Zabbix host information 
+
 Edit `config.yml` to add your ISP gateway locations. Each location can have multiple ISPs:
 
 ```yaml
 locations:
-  main_office:
+  iyc:
     description: "Main office with dual ISP setup"
     isps:
       primary:
-        gateway_ip: "192.168.1.1"
+        http_ip: "192.168.1.1"
         zabbix_hostname: "ISP-Main-Primary"
-        isp_name: "Comcast Business"
-        connection_type: "Primary"
       backup:
-        gateway_ip: "192.168.1.254"
+        http_ip: "192.168.1.254"
         zabbix_hostname: "ISP-Main-Backup"
-        isp_name: "Verizon Business"
-        connection_type: "Backup"
+  ssb:
+    description: "Sadhguru Sannidhi"
+    isps:
+      primary:
+        http_ip: "192.168.1.1"
+        zabbix_hostname: "SSB-Main-Primary"
+      backup:
+        http_ip: "192.168.1.254"
+        zabbix_hostname: "SSB-Main-Backup"
+
 ```
 
-### 3. Zabbix Server Configuration
+### Zabbix Server Configuration
 
 #### Create Hosts
 For each ISP connection, create a separate host in Zabbix:
 
-- **Host name**: Must match `zabbix_hostname` in config.yml (e.g., "ISP-Main-Primary")
-- **Visible name**: Descriptive name (e.g., "Main Office - Comcast Primary")
 - **Groups**: Create/use groups like "ISP Gateways - Primary", "ISP Gateways - Backup"
-- **Interfaces**: Add Agent interface (IP can be 127.0.0.1 since we use trapper items)
+- **Host name**: Must match `zabbix_hostname` in config.yml (e.g., "ISP-Main-Primary")
 
 #### Create Items
-For each host, create these 4 trapper items:
+For each host, create these 3 trapper items:
 
-**1. Packet Loss Percentage**
-- **Name**: `Ping Packet Loss`
-- **Type**: `Zabbix trapper`
-- **Key**: `ping.loss`
-- **Type of information**: `Numeric (float)`
-- **Units**: `%`
-- **Update interval**: `0` (trapper)
+**Ping**
+- **Key**: `ping`
+- Name: `Ping Status`
+- Type: `Zabbix trapper`
+- Type of information: `Numeric (int)`
+- Update interval: `0` (trapper)
 
-**2. Average Round Trip Time**
-- **Name**: `Ping Average RTT`
-- **Type**: `Zabbix trapper`
-- **Key**: `ping.avg`
-- **Type of information**: `Numeric (float)`
-- **Units**: `ms`
-- **Update interval**: `0` (trapper)
+**Packet Loss Percentage**
+- **Key**: `packet_loss`
+- Name: `Ping Packet Loss`
+- Type: `Zabbix trapper`
+- Type of information: `Numeric (float)`
+- Units: `%`
+- Update interval: `0` (trapper)
 
-**3. Minimum Round Trip Time**
-- **Name**: `Ping Minimum RTT`
-- **Type**: `Zabbix trapper`
-- **Key**: `ping.min`
-- **Type of information**: `Numeric (float)`
-- **Units**: `ms`
-- **Update interval**: `0` (trapper)
+**Average Round Trip Time**
+- **Key**: `avg_time`
+- Name: `Ping Average RTT`
+- Type: `Zabbix trapper`
+- Type of information: `Numeric (float)`
+- Units: `ms`
+- Update interval: `0` (trapper)
 
-**4. Maximum Round Trip Time**
-- **Name**: `Ping Maximum RTT`
-- **Type**: `Zabbix trapper`
-- **Key**: `ping.max`
-- **Type of information**: `Numeric (float)`
-- **Units**: `ms`
-- **Update interval**: `0` (trapper)
-
-#### Suggested Triggers
-
-**Primary ISP Down (Disaster)**
+### Run the script
 ```
-Expression: last(/ISP-Main-Primary/ping.loss)=100
-Severity: Disaster
-Description: Primary ISP {HOST.NAME} is completely unreachable
+ZABBIX_SERVER=<ip of tailscale server> python3 ping_monitor.py
 ```
 
-**Backup ISP Down (High)**
-```
-Expression: last(/ISP-Main-Backup/ping.loss)=100
-Severity: High
-Description: Backup ISP {HOST.NAME} is unreachable
-```
-
-**High Packet Loss on Primary (High)**
-```
-Expression: last(/ISP-Main-Primary/ping.loss)>10
-Severity: High
-Description: High packet loss ({ITEM.LASTVALUE}%) on primary ISP {HOST.NAME}
-```
-
-**High Packet Loss on Backup (Warning)**
-```
-Expression: last(/ISP-Main-Backup/ping.loss)>10
-Severity: Warning
-Description: High packet loss ({ITEM.LASTVALUE}%) on backup ISP {HOST.NAME}
-```
-
-**High Latency (Warning)**
-```
-Expression: last(/ISP-Main-Primary/ping.avg)>100
-Severity: Warning
-Description: High latency ({ITEM.LASTVALUE}ms) on {HOST.NAME}
-```
-
-#### Suggested Graphs and Dashboards
-
-**Per-Location ISP Comparison**
-- Create graphs comparing all ISPs at each location
-- Include packet loss and RTT metrics side by side
-
-**ISP Redundancy Dashboard**
-- Overview of all primary vs backup connections
-- Status indicators for each location's connectivity
-
-**Network Quality Trends**
-- Historical view of packet loss and latency
-- Identify patterns and degradation over time
-
-## Configuration Examples
-
-### Dual ISP Setup (Most Common)
-```yaml
-office_location:
-  description: "Office with primary and backup ISP"
-  isps:
-    primary:
-      gateway_ip: "192.168.1.1"
-      zabbix_hostname: "ISP-Office-Primary"
-      isp_name: "Comcast Business"
-      connection_type: "Primary"
-    backup:
-      gateway_ip: "192.168.1.254"
-      zabbix_hostname: "ISP-Office-Backup"
-      isp_name: "Verizon Business"
-      connection_type: "Backup"
-```
-
-### Triple ISP Setup (High Availability)
-```yaml
-datacenter:
-  description: "Data center with dual fiber + cellular backup"
-  isps:
-    fiber_a:
-      gateway_ip: "10.0.1.1"
-      zabbix_hostname: "ISP-DC-FiberA"
-      isp_name: "Level3"
-      connection_type: "Fiber A"
-    fiber_b:
-      gateway_ip: "10.0.2.1"
-      zabbix_hostname: "ISP-DC-FiberB"
-      isp_name: "Cogent"
-      connection_type: "Fiber B"
-    cellular:
-      gateway_ip: "10.0.100.1"
-      zabbix_hostname: "ISP-DC-Cellular"
-      isp_name: "Verizon Wireless"
-      connection_type: "Cellular Backup"
-```
-
-## How It Works
-
-1. **Schedule**: GitHub Actions runs every 5 minutes via cron
-2. **Configuration**: Loads ISP gateway details from config.yml
-3. **Multi-ISP Processing**: Iterates through each location and all ISPs
-4. **Ping Testing**: Sends 5 ping packets to each gateway IP
-5. **Statistics**: Extracts packet loss % and RTT (min/avg/max)
-6. **Zabbix Integration**: Uses zabbix_sender to push metrics
-7. **Logging**: Creates detailed logs with per-ISP results
-
-## Sample Log Output
+**Sample Log Output**
 
 ```
 2024-01-15 10:00:01 - INFO - Starting ping monitor - Zabbix server: zabbix.company.com:10051
@@ -201,94 +134,11 @@ datacenter:
 2024-01-15 10:00:04 - INFO - Zabbix metrics - Success: 32, Failed: 0
 ```
 
-## Manual Execution
+## Setting up as service on Ubuntu machine
 
-Test locally before deploying:
+- Check & update values in ping_monitor.service 
+- Copy the file to `/etc/systemd/system` as root
+- Execute `sudo systemctl reload-daemon` for the new service to be registered
+- Start the service with `sudo systemctl start ping_monitor`
+- Check logs in syslog `tail -f /var/log/syslog`
 
-```bash
-# Install dependencies
-sudo apt-get install zabbix-sender iputils-ping
-pip install pyyaml
-
-# Set environment variables
-export ZABBIX_SERVER="your-zabbix-server.com"
-export ZABBIX_PORT="10051"
-
-# Run the script
-python ping_monitor.py
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Configuration Errors**
-- Verify YAML syntax in config.yml
-- Ensure all required fields are present for each ISP
-- Check that zabbix_hostname values are unique
-
-**Connectivity Issues**
-- Test Zabbix server connectivity: `telnet your-server 10051`
-- Verify gateway IPs are reachable: `ping gateway-ip`
-- Check GitHub Actions runner can reach your Zabbix server
-
-**Zabbix Integration**
-- Ensure hostnames in config.yml exactly match Zabbix host names
-- Verify trapper items are configured correctly
-- Test zabbix_sender manually:
-  ```bash
-  zabbix_sender -z server -p 10051 -s ISP-Main-Primary -k ping.loss -o 0
-  ```
-
-### Finding Gateway IPs
-
-**Windows**
-```cmd
-ipconfig /all
-# Look for "Default Gateway" entries
-```
-
-**Linux/Mac**
-```bash
-ip route show | grep default
-# or
-route -n | grep UG
-```
-
-**Router Configuration**
-- Access router admin panel (usually 192.168.1.1 or 192.168.0.1)
-- Look for WAN or Internet connection settings
-- Each ISP connection will have its own gateway
-
-## Files Structure
-
-```
-isp-monitoring-zabbix/
-├── .github/workflows/
-│   └── ping-monitor.yml     # GitHub Actions workflow
-├── ping_monitor.py          # Main monitoring script
-├── config.yml              # Multi-ISP configuration
-└── README.md               # This documentation
-```
-
-## Advanced Configuration
-
-### Custom Ping Parameters
-Modify the script to adjust ping behavior:
-- Change ping count (default: 5 packets)
-- Adjust timeout values (default: 3 seconds)
-- Modify ping interval
-
-### Additional Metrics
-The script can be extended to include:
-- Jitter calculations
-- Packet size variations
-- IPv6 support
-- Custom Zabbix item keys
-
-### Alerting Integration
-Combine with Zabbix alerting for:
-- Email notifications on ISP failures
-- SMS alerts for critical outages
-- Slack/Teams integration
-- Automated failover triggers
