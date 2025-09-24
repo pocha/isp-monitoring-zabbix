@@ -2,25 +2,23 @@
 
 [Linkeye](linkeye.ai) does monitoring of ISPs by pinging them externally from their server & provide you with alerts & dashboard. At Isha Yoga Center, we have created an inhouse solution of the same using our self hosted [Zabbix](zabbix.com). This repository is for python script that is run externally (on an AWS server) to ping our ISPs on regular basis 
 
-> To post data from outside to Zabbix, the usual way of `zabbix_sender` will not work out. You need to setup a jump server (using ngrok or something similar) to have an external endpoint to which the external script can post data, which will route to zabbix-http & zabbix-http will push the data to zabbix using zabbix_sender
+Since our Zabbix server is located on a server with private IP & we did not want to open a port on our firewall, we created a tunnel from a jump server to our Zabbix server. We tried sending data using `zabbix_sender` via the jump server, but that did not work. We found a utility `zabbix-sender-http` that exposes an http end point to which data could be sent & then it sends data to Zabbix using `zabbix_sender`. Below are the setup instructions for this setup. 
 
 
-## Setup Instructions
-
-### 1. Zabbix 
+## 1. Zabbix 
 
 Download & install Zabbix on one of your internal machines. Zabbix has SNMP trap support to capture data from switches & other internal devices. You can also choose to install Zabbix agents on switches & other network devices if there is support for that. 
 
 To capture the data sent from the ping script, you need to do the following on the Zabbix UI. 
 
-##### 1.a Create Hosts
+### 1.a Create Hosts
 
 For each ISP connection, create a separate host in Zabbix:
 
 - **Groups**: Create/use groups like "ISP Gateways - Primary", "ISP Gateways - Backup"
 - **Host name**: Must match `zabbix_hostname` in config.yml (e.g., "ISP-Main-Primary")
 
-##### 1.b Create Items
+### 1.b Create Items
 z
 For each host, create these 3 trapper items:
 
@@ -47,7 +45,7 @@ For each host, create these 3 trapper items:
 - Units: `ms`
 - Update interval: `0` (trapper)
 
-### 2. Setup `zabbix-sender-http` on machine running zabbix
+## 2. Setup `zabbix-sender-http` on machine running zabbix
 
 Download & install [zabbix-sender-http](https://github.com/0xdeface/zabbix-sender-http). Links to install the binary are on the README of the zabbix-sender-http project. It has to be installed on the same machine where Zabbix is running. 
 
@@ -61,7 +59,7 @@ Command -> ./zabbix-http -http-port 8081
 
 ```
 
-### 3. Setup `tailscale` tunnel/funnel on machine running Zabbix
+## 3. Setup `tailscale` tunnel/funnel on machine running Zabbix
 
 We chose tailscale instead of `ngrok`. Reason being, tailscale allows for a specific custom tailscale domain everytime we created a tunnel, in their free tier as well. ngrok will create a new url everytime we create a tunnel in its free tier. We recommend using tailscale for this reason
 
@@ -91,9 +89,9 @@ With the above steps, a tunnel is now created from xxx.ts.net -> zabbix-sender-h
 Note the url **https://ifiycitsklt395.tail386825.ts.net/** which you should be passing as Env variable `ZABBIX_SERVER` to the script. This is the url to which the ping script will send data to. 
 
 
-### 4. Clone this repository on ping server & do the following: 
+## 4. Clone this repository on ping server & do the following: 
 
-#### 4.a Edit config file 
+### 4.a Edit config file 
 
 Edit `config.yml` to add your ISP gateway locations. Each location can have multiple ISPs. Sample config file below. 
 
@@ -122,7 +120,7 @@ locations:
 
 
 
-#### 4.b Run the script
+### 4.b Run the script
 ```
 ZABBIX_SERVER=<ip of tailscale server> python3 ping_monitor.py
 ```
@@ -145,7 +143,7 @@ ZABBIX_SERVER=<ip of tailscale server> python3 ping_monitor.py
 ```
 
 
-#### (optional) 4.c Setting up as service on Ubuntu machine
+### 4.c (optional) Setting up as service on Ubuntu machine
 
 If you want the script to run automatically on server start/reboot, do the following steps. 
 
