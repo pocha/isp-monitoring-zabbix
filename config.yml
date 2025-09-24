@@ -7,7 +7,7 @@ locations:
     description: "Main office with primary and backup ISP"
     isps:
       primary:
-        gateway_ip: "117.239.66.129"
+        gateway_ip: "117.239.66.131"
         zabbix_hostname: "iyc-primary-bsnl"
         
 #      backup:

@@ -14,12 +14,14 @@ Download & install Zabbix on one of your internal machines. Zabbix has SNMP trap
 To capture the data sent from the ping script, you need to do the following on the Zabbix UI. 
 
 ##### 1.a Create Hosts
+
 For each ISP connection, create a separate host in Zabbix:
 
 - **Groups**: Create/use groups like "ISP Gateways - Primary", "ISP Gateways - Backup"
 - **Host name**: Must match `zabbix_hostname` in config.yml (e.g., "ISP-Main-Primary")
 
 ##### 1.b Create Items
+z
 For each host, create these 3 trapper items:
 
 **Ping**
@@ -127,6 +129,7 @@ ZABBIX_SERVER=<ip of tailscale server> python3 ping_monitor.py
 
 **Sample Log Output**
 
+
 ```
 2024-01-15 10:00:01 - INFO - Starting ping monitor - Zabbix server: zabbix.company.com:10051
 2024-01-15 10:00:01 - INFO - Processing location: main_office
@@ -140,6 +143,7 @@ ZABBIX_SERVER=<ip of tailscale server> python3 ping_monitor.py
 2024-01-15 10:00:04 - INFO - Monitoring complete - Locations: 4, ISPs: 8
 2024-01-15 10:00:04 - INFO - Zabbix metrics - Success: 32, Failed: 0
 ```
+
 
 #### (optional) 4.c Setting up as service on Ubuntu machine
 
