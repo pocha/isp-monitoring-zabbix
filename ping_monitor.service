@@ -1,0 +1,17 @@
+[Unit]
+Description = Ping Monitor
+After = network.target  
+
+[Service]
+Type = simple
+Environment=ZABBIX_SERVER=xxxx #replace xxx with tailscale domain
+ExecStart=/usr/bin/python3 /root/ping_monitor.py #update path to where the repository is checked out 
+User = root
+Group = root 
+Restart = on-failure 
+SyslogIdentifier = ping_monitor
+RestartSec = 5
+TimeoutStartSec = infinity
+ 
+[Install]
+WantedBy = multi-user.target 
