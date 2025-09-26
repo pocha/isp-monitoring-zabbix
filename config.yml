@@ -6,13 +6,30 @@ locations:
   iyc:
     description: "Main office with primary and backup ISP"
     isps:
-      primary:
+      bsnl-gateway:
+        gateway_ip: "117.239.66.129"
+        zabbix_hostname: "iyc-backup-bsnl"
+        
+      bsnl-wan:
         gateway_ip: "117.239.66.131"
         zabbix_hostname: "iyc-primary-bsnl"
+
+      jio-gateway:
+        gateway_ip: "47.247.113.49"
+        zabbix_hostname: "iyc-backup-jio"
         
-#      backup:
-#        gateway_ip: "47.247.113.49"
-#        zabbix_hostname: "iyc-backup-jio"
+      jio-wan:
+        gateway_ip: "47.247.113.51"
+        zabbix_hostname: "iyc-primary-jio"
+      
+      airtel-gateway:
+        gateway_ip: "47.247.113.49"
+        zabbix_hostname: "iyc-backup-airtel"
+        
+      airtel-wan:
+        gateway_ip: "47.247.113.51"
+        zabbix_hostname: "iyc-primary-airtel"
+
       
 # Configuration notes:
 # - Each location can have multiple ISPs under the 'isps' section
