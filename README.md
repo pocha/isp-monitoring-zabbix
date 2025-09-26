@@ -57,6 +57,7 @@ Command -> ./zabbix-http -http-port 8081
  zabbix server addr: 127.0.0.1:10051 
  http server port: 8081 
 
+If the Zabbix server restart, we need to execute this command again
 ```
 
 ## 3. Setup `tailscale` tunnel/funnel on machine running Zabbix
