@@ -23,7 +23,7 @@ z
 For each host, create these 3 trapper items:
 
 **Ping**
-- **Key**: `ping`
+- **Key**: `ping_check`
 - Name: `Ping Status`
 - Type: `Zabbix trapper`
 - Type of information: `Numeric (int)`
@@ -117,8 +117,7 @@ locations:
         zabbix_hostname: "SSB-Main-Backup"
 
 ```
-
-
+The exact group name like `primary` or `backup` does not matter. You can create any name you want & as many number (2 in this example) as you like. Each group should have `http_ip` & `zabbix_hostname` field which is mandatory. If your ISP has multiple check IPs, you need to create one separate zabbix host for each IP. Unfortunately that is how it works in Zabbix. 
 
 ### 4.b Run the script
 ```
@@ -152,6 +151,8 @@ If you want the script to run automatically on server start/reboot, do the follo
 - Check & update values in ping_monitor.service. Specifically the path to ping_monitor.py & tailscale url with your jump server location. 
 - Copy the file to `/etc/systemd/system` as root
 - Execute `sudo systemctl reload-daemon` for the new service to be registered
-- Start the service with `sudo systemctl start ping_monitor`
+- Start the service with `sudo systemctl start ping_monitor.service`
+
+> Once you update the code on ubuntu machine, systemctl will not pick the new code till you do `sudo systemctl restart ping_monitor.service`
 - Check logs in syslog `tail -f /var/log/syslog`
 
