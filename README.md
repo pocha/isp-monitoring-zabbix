@@ -152,7 +152,7 @@ If you want the script to run automatically on server start/reboot, do the follo
 - Copy the file to `/etc/systemd/system` as root
 - Execute `sudo systemctl reload-daemon` for the new service to be registered
 - Start the service with `sudo systemctl start ping_monitor.service`
+- Check logs in syslog `tail -f /var/log/syslog`
 
 > Once you update the code on ubuntu machine, systemctl will not pick the new code till you do `sudo systemctl restart ping_monitor.service`
-- Check logs in syslog `tail -f /var/log/syslog`
 
