@@ -1,5 +1,7 @@
 # Linkeye alternative for monitoring ISPs with Zabbix
 
+![Block Diagram](isp-monitoring-zabbix.svg)
+
 [Linkeye](linkeye.ai) does monitoring of ISPs by pinging them externally from their server & provide you with alerts & dashboard. At Isha Yoga Center, we have created an inhouse solution of the same using our self hosted [Zabbix](zabbix.com). This repository is for python script that is run externally (on an AWS server) to ping our ISPs on regular basis 
 
 Since our Zabbix server is located on a server with private IP & we did not want to open a port on our firewall, we created a tunnel from a jump server to our Zabbix server. We tried sending data using `zabbix_sender` via the jump server, but that did not work. We found a utility `zabbix-sender-http` that exposes an http end point to which data could be sent & then it sends data to Zabbix using `zabbix_sender`. Below are the setup instructions for this setup. 
