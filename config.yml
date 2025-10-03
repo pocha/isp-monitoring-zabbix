@@ -23,11 +23,11 @@ locations:
         zabbix_hostname: "iyc-primary-jio"
       
       airtel-gateway:
-        gateway_ip: "47.247.113.49"
+        gateway_ip: "125.17.255.193"
         zabbix_hostname: "iyc-backup-airtel"
         
       airtel-wan:
-        gateway_ip: "47.247.113.51"
+        gateway_ip: "125.17.255.194"
         zabbix_hostname: "iyc-primary-airtel"
 
       
