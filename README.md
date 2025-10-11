@@ -54,7 +54,9 @@ Download & install [zabbix-sender-http](https://github.com/0xdeface/zabbix-sende
 Start zabbix-sender-http on port 8081 (Our zabbix is running on port 8080, so we chose to run zabbix-sender-http on 8081. You can choose any port of your choice)
 
 ```
-Command -> ./zabbix-http -http-port 8081
+Command ->
+cd zabbix-http/
+./zabbix-http -http-port 8081
 
  zabbix server addr: 127.0.0.1:10051 
  http server port: 8081 
